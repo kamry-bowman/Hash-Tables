@@ -130,18 +130,45 @@ void hash_table_insert(HashTable *ht, char *key, char *value)
 
   Don't forget to free any malloc'ed memory!
  */
-// void hash_table_remove(HashTable *ht, char *key)
-// {
-// }
+void hash_table_remove(HashTable *ht, char *key)
+{
+  
+  int index = hash(key, ht->capacity);
+  LinkedPair *current = ht->storage[index];
+  int found = 0;
+  
+  if (current)
+  {
+    if (strcmp(current->key, key) == 0) {
+      // possible crash source
+      ht->storage[index] = current->next;
+      found = 1;
+    // infinite loop until key is found or linkedPairs are exhausted
+    } else {
+      for(;;)
+      {
+        if (current->next == NULL)
+        {
+          break;
+        } else if (strcmp(current->next->key, key) == 0) {
+          LinkedPair *deleted = current->next;
+          current->next = current->next->next;
+          destroy_pair(deleted);
+          found = 1;
+          break;
+        }
+        current = current->next;
+      }
+    }
+  }
 
-/*
-  Fill this in.
+  if (!found) {
+    perror("Key not found!");
+  }
 
-  Should search the entire list of LinkedPairs for existing
-  keys.
+}
 
-  Return NULL if the key is not found.
- */
+
 char *hash_table_retrieve(HashTable *ht, char *key)
 {
 
@@ -181,9 +208,20 @@ char *hash_table_retrieve(HashTable *ht, char *key)
 
   Don't forget to free any malloc'ed memory!
  */
-// void destroy_hash_table(HashTable *ht)
-// {
-// }
+void destroy_hash_table(HashTable *ht)
+{
+  for (int i = 0; i < ht->capacity; i++) {
+    LinkedPair *current = ht->storage[i];
+
+    while (current) {
+      LinkedPair *next = current->next;
+      destroy_pair(current);
+      current = next;
+    }
+  }
+  free(ht->storage);
+  free(ht);
+}
 
 /*
   Fill this in.
@@ -193,33 +231,108 @@ char *hash_table_retrieve(HashTable *ht, char *key)
 
   Don't forget to free any malloc'ed memory!
  */
-// HashTable *hash_table_resize(HashTable *ht)
-// {
-//   HashTable *new_ht;
+HashTable *hash_table_resize(HashTable *ht)
+{
+  HashTable *new_ht = create_hash_table(ht->capacity * 2);
+  for (int i = 0; i < ht->capacity; i++) {
+    LinkedPair *current = ht->storage[i];
 
-//   return new_ht;
-// }
+    while (current) {
+      LinkedPair *next = current->next;
+      hash_table_insert(new_ht, current->key, current->value);
+      current = next;
+    }
+  }
+
+  destroy_hash_table(ht);
+  return new_ht;
+}
 
 #ifndef TESTING
 int main(void)
 {
-  struct HashTable *ht = create_hash_table(2);
+  // struct HashTable *ht = create_hash_table(2);
 
-  hash_table_insert(ht, "line_1", "Tiny hash table\n");
-  hash_table_insert(ht, "line_2", "Filled beyond capacity\n");
-  hash_table_insert(ht, "line_3", "Linked list saves the day!\n");
+  // hash_table_insert(ht, "line_1", "Tiny hash table\n");
+  // hash_table_insert(ht, "line_2", "Filled beyond capacity\n");
+  // hash_table_insert(ht, "line_3", "Linked list saves the day!\n");
 
-  printf("%s", hash_table_retrieve(ht, "line_1"));
-  printf("%s", hash_table_retrieve(ht, "line_2"));
-  printf("%s", hash_table_retrieve(ht, "line_3"));
+  // printf("%s", hash_table_retrieve(ht, "line_1"));
+  // printf("%s", hash_table_retrieve(ht, "line_2"));
+  // printf("%s", hash_table_retrieve(ht, "line_3"));
 
   // int old_capacity = ht->capacity;
   // ht = hash_table_resize(ht);
   // int new_capacity = ht->capacity;
-
   // printf("\nResizing hash table from %d to %d.\n", old_capacity, new_capacity);
 
+  // hash_table_insert(ht, "key-0", "val-0");
+  // hash_table_insert(ht, "key-1", "val-1");
+  // hash_table_insert(ht, "key-2", "val-2");
+  // hash_table_insert(ht, "key-3", "val-3");
+  // hash_table_insert(ht, "key-4", "val-4");
+  // hash_table_insert(ht, "key-5", "val-5");
+  // hash_table_insert(ht, "key-6", "val-6");
+  // hash_table_insert(ht, "key-7", "val-7");
+  // hash_table_insert(ht, "key-8", "val-8");
+  // hash_table_insert(ht, "key-9", "val-9");
+
+  // hash_table_remove(ht, "key-9");
+  // hash_table_remove(ht, "key-8");
+  // hash_table_remove(ht, "key-7");
+  // hash_table_remove(ht, "key-6");
+  // hash_table_remove(ht, "key-5");
+  // hash_table_remove(ht, "key-4");
+  // hash_table_remove(ht, "key-3");
+  // hash_table_remove(ht, "key-2");
+  // hash_table_remove(ht, "key-1");
+  // hash_table_remove(ht, "key-0");
+
+
   // destroy_hash_table(ht);
+
+      struct HashTable *ht = create_hash_table(8);
+
+    hash_table_insert(ht, "key-0", "val-0");
+    hash_table_insert(ht, "key-1", "val-1");
+    hash_table_insert(ht, "key-2", "val-2");
+    hash_table_insert(ht, "key-3", "val-3");
+    hash_table_insert(ht, "key-4", "val-4");
+    hash_table_insert(ht, "key-5", "val-5");
+    hash_table_insert(ht, "key-6", "val-6");
+    hash_table_insert(ht, "key-7", "val-7");
+    hash_table_insert(ht, "key-8", "val-8");
+    hash_table_insert(ht, "key-9", "val-9");
+
+    hash_table_remove(ht, "key-9");
+    hash_table_remove(ht, "key-8");
+    hash_table_remove(ht, "key-7");
+    hash_table_remove(ht, "key-6");
+    hash_table_remove(ht, "key-5");
+    hash_table_remove(ht, "key-4");
+    hash_table_remove(ht, "key-3");
+    hash_table_remove(ht, "key-2");
+    hash_table_remove(ht, "key-1");
+    hash_table_remove(ht, "key-0");
+
+    // hash_table_retrieve(ht, "key-0") == NULL
+    // mu_assert(hash_table_retrieve(ht, "key-1") == NULL, "Deleted value is not NULL");
+    // mu_assert(hash_table_retrieve(ht, "key-2") == NULL, "Deleted value is not NULL");
+    // mu_assert(hash_table_retrieve(ht, "key-3") == NULL, "Deleted value is not NULL");
+    // mu_assert(hash_table_retrieve(ht, "key-4") == NULL, "Deleted value is not NULL");
+    // mu_assert(hash_table_retrieve(ht, "key-5") == NULL, "Deleted value is not NULL");
+    // mu_assert(hash_table_retrieve(ht, "key-6") == NULL, "Deleted value is not NULL");
+    // mu_assert(hash_table_retrieve(ht, "key-7") == NULL, "Deleted value is not NULL");
+    // mu_assert(hash_table_retrieve(ht, "key-8") == NULL, "Deleted value is not NULL");
+    // mu_assert(hash_table_retrieve(ht, "key-9") == NULL, "Deleted value is not NULL");
+
+    
+    char * res = hash_table_retrieve(ht, "key-0");
+    if (res == NULL) {
+      printf("IS NULL");
+    } else {
+      printf("value is %s\n", res);
+    }
 
   return 0;
 }
